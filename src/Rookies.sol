@@ -39,7 +39,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     uint256 private constant maxBatchSize = 5;
 
     mapping(uint256 => TokenData) private tokens;
-    uint256 private mintCounter;
+    uint256 public totalSupply;
 
     // TODO: you can get getters by overriding. Test this.
     string public override name = "Rookies";
@@ -58,7 +58,11 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     /// EFFECTS ///
 
-    // * this is good
+    // TODO: need to guard mint
+    function mint(uint256 amount) external {
+        _mint(_msgSender(), amount);
+    }
+
     function approve(address to, uint256 tokenId) public virtual override {
         TokenData memory token = _tokenData(tokenId);
         address owner = token.owner;
@@ -71,7 +75,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         _approve(to, tokenId, token);
     }
 
-    // * this is good
     function setApprovalForAll(address operator, bool approved)
         public
         virtual
@@ -90,7 +93,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         override
     {
         TokenData memory token = _tokenData(tokenId);
-        if (!_isApprovedOrOwner(_msgSender(), tokenId, token)) {
+        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
             revert TransferCallerNotOwnerNorApproved();
         }
         _transfer(from, to, tokenId, token);
@@ -115,7 +118,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         override
     {
         TokenData memory token = _tokenData(tokenId);
-        if (!_isApprovedOrOwner(_msgSender(), tokenId, token)) {
+        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
             revert TransferCallerNotOwnerNorApproved();
         }
         _safeTransfer(from, to, tokenId, token, data);
@@ -146,13 +149,12 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         internal
         virtual
     {
-        uint256 startTokenId = mintCounter;
         _mint(to, quantity);
         if (to.isContract()) {
             unchecked {
                 for (uint256 i; i < quantity; ++i) {
                     if (
-                        !_checkOnERC721Received(address(0), to, startTokenId + i, data)
+                        !_checkOnERC721Received(address(0), to, totalSupply + i, data)
                     ) {
                         revert TransferToNonERC721ReceiverImplementer();
                     }
@@ -168,21 +170,21 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (quantity == 0) {
             revert MintZeroQuantity();
         }
-        uint256 startTokenId = mintCounter;
         unchecked {
             for (uint256 i; i < quantity; ++i) {
-                if (maxBatchSize == 0 ? i == 0 : i % maxBatchSize == 0) {
-                    TokenData storage token = tokens[startTokenId + i];
+                if (i % maxBatchSize == 0) {
+                    TokenData storage token = tokens[totalSupply + i];
                     token.owner = to;
                     token.aux =
-                        _calculateAux(address(0), to, startTokenId + i, 0);
+                        _calculateAux(address(0), to, totalSupply + i, 0);
                 }
-                emit Transfer(address(0), to, startTokenId + i);
+                emit Transfer(address(0), to, totalSupply + i);
             }
-            mintCounter += quantity;
+            totalSupply += quantity;
         }
     }
 
+    // TODO: does not reset ApprovalForAll
     function _transfer(
         address from,
         address to,
@@ -215,7 +217,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         emit Transfer(from, to, tokenId);
     }
 
-    // * this is good
     function _approve(address to, uint256 tokenId, TokenData memory token)
         internal
         virtual
@@ -250,20 +251,19 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     /// INTERNAL READ ///
 
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return tokenId < mintCounter;
+        return tokenId < totalSupply;
     }
 
     function _isApprovedOrOwner(
         address spender,
         uint256 tokenId,
-        TokenData memory token
+        address owner
     )
         internal
         view
         virtual
         returns (bool)
     {
-        address owner = token.owner;
         return (
             spender == owner || isApprovedForAll(owner, spender)
                 || getApproved(tokenId) == spender
@@ -308,6 +308,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
             : current;
     }
 
+    // TODO: this needs to be settable. Need a var for it
     function _baseURI() internal view virtual returns (string memory) {
         return "";
     }
@@ -347,10 +348,9 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (owner == address(0)) {
             revert BalanceQueryForZeroAddress();
         }
-        uint256 total = totalSupply();
         uint256 count;
         address lastOwner;
-        for (uint256 i; i < total; ++i) {
+        for (uint256 i; i < totalSupply; ++i) {
             address tokenOwner = tokens[i].owner;
             if (tokenOwner != address(0)) {
                 lastOwner = tokenOwner;
@@ -373,10 +373,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
             revert OwnerQueryForNonexistentToken();
         }
         return _tokenData(tokenId).owner;
-    }
-
-    function totalSupply() public view virtual returns (uint256) {
-        return mintCounter;
     }
 
     function supportsInterface(bytes4 interfaceId)
