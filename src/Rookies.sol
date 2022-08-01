@@ -12,12 +12,12 @@ import "./TinyERC721.sol";
 import "./TokenSale.sol";
 import "./ITokenRenderer.sol";
 
-contract Tajigen is TinyERC721, ERC2981, Ownable, TokenSale {
+contract Rookies is TinyERC721, ERC2981, Ownable, TokenSale {
     uint256 public constant MAX_SUPPLY = 7777;
 
     address private _rendererAddress;
 
-    constructor() TinyERC721("Citizens of Tajigen", "TAJIGEN", 5) {
+    constructor() TinyERC721("Rookies", "ROOKIES", 5) {
         _safeMint(_msgSender(), 1);
     }
 
