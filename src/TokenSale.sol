@@ -27,7 +27,8 @@ abstract contract TokenSale is Ownable {
     mapping(uint256 => BitMaps.BitMap) private _allowlist;
 
     modifier canMint(uint256 saleId, address to, uint256 amount) {
-        _guardMint(to, amount);
+        // TODO
+        // _guardMint(to, amount);
 
         unchecked {
             SaleConfig memory saleConfig = _saleConfig[saleId];
@@ -168,7 +169,20 @@ abstract contract TokenSale is Ownable {
         );
     }
 
-    function _guardMint(address to, uint256 quantity) internal view virtual {}
+    // TODO
+    // function _guardMint(address, uint256 quantity)
+    //     internal
+    //     view
+    //     virtual
+    //     override
+    // {
+    //     unchecked {
+    //         require(tx.origin == msg.sender, "Can't mint from contract");
+    //         require(
+    //             totalSupply() + quantity <= MAX_SUPPLY, "Exceeds max supply"
+    //         );
+    //     }
+    // }
 
     function _mintTokens(address to, uint256 quantity) internal virtual;
 }
