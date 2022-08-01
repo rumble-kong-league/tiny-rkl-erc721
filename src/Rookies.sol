@@ -58,20 +58,20 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     /// EFFECTS ///
 
+    // * this is good
     function approve(address to, uint256 tokenId) public virtual override {
         TokenData memory token = _tokenData(tokenId);
         address owner = token.owner;
         if (to == owner) {
             revert ApprovalToCurrentOwner();
         }
-
         if (_msgSender() != owner && !isApprovedForAll(owner, _msgSender())) {
             revert ApprovalCallerNotOwnerNorApproved();
         }
-
         _approve(to, tokenId, token);
     }
 
+    // * this is good
     function setApprovalForAll(address operator, bool approved)
         public
         virtual
@@ -80,7 +80,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (operator == _msgSender()) {
             revert ApproveToCaller();
         }
-
         operatorApprovals[_msgSender()][operator] = approved;
         emit ApprovalForAll(_msgSender(), operator, approved);
     }
@@ -94,7 +93,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_isApprovedOrOwner(_msgSender(), tokenId, token)) {
             revert TransferCallerNotOwnerNorApproved();
         }
-
         _transfer(from, to, tokenId, token);
     }
 
@@ -120,7 +118,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_isApprovedOrOwner(_msgSender(), tokenId, token)) {
             revert TransferCallerNotOwnerNorApproved();
         }
-
         _safeTransfer(from, to, tokenId, token, data);
     }
 
@@ -135,7 +132,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         virtual
     {
         _transfer(from, to, tokenId, token);
-
         if (to.isContract() && !_checkOnERC721Received(from, to, tokenId, data))
         {
             revert TransferToNonERC721ReceiverImplementer();
@@ -152,7 +148,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     {
         uint256 startTokenId = mintCounter;
         _mint(to, quantity);
-
         if (to.isContract()) {
             unchecked {
                 for (uint256 i; i < quantity; ++i) {
@@ -166,26 +161,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         }
     }
 
-    // function _beforeTokenTransfers(
-    //     address from,
-    //     address to,
-    //     uint256 startTokenId,
-    //     uint256 quantity
-    // )
-    //     internal
-    //     virtual
-    // {}
-
-    // function _afterTokenTransfers(
-    //     address from,
-    //     address to,
-    //     uint256 startTokenId,
-    //     uint256 quantity
-    // )
-    //     internal
-    //     virtual
-    // {}
-
     function _mint(address to, uint256 quantity) internal virtual {
         if (to == address(0)) {
             revert MintToZeroAddress();
@@ -193,10 +168,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (quantity == 0) {
             revert MintZeroQuantity();
         }
-
         uint256 startTokenId = mintCounter;
-        // _beforeTokenTransfers(address(0), to, startTokenId, quantity);
-
         unchecked {
             for (uint256 i; i < quantity; ++i) {
                 if (maxBatchSize == 0 ? i == 0 : i % maxBatchSize == 0) {
@@ -205,13 +177,10 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
                     token.aux =
                         _calculateAux(address(0), to, startTokenId + i, 0);
                 }
-
                 emit Transfer(address(0), to, startTokenId + i);
             }
             mintCounter += quantity;
         }
-
-        // _afterTokenTransfers(address(0), to, startTokenId, quantity);
     }
 
     function _transfer(
@@ -229,11 +198,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (to == address(0)) {
             revert TransferToZeroAddress();
         }
-
-        // _beforeTokenTransfers(from, to, tokenId, 1);
-
         _approve(address(0), tokenId, token);
-
         unchecked {
             uint256 nextTokenId = tokenId + 1;
             if (_exists(nextTokenId)) {
@@ -244,16 +209,13 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
                 }
             }
         }
-
         TokenData storage newToken = tokens[tokenId];
         newToken.owner = to;
         newToken.aux = _calculateAux(from, to, tokenId, token.aux);
-
         emit Transfer(from, to, tokenId);
-
-        // _afterTokenTransfers(from, to, tokenId, 1);
     }
 
+    // * this is good
     function _approve(address to, uint256 tokenId, TokenData memory token)
         internal
         virtual
@@ -316,7 +278,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_exists(tokenId)) {
             revert TokenDataQueryForNonexistentToken();
         }
-
         TokenData storage token = tokens[tokenId];
         uint256 currentIndex = tokenId;
         while (token.owner == address(0)) {
@@ -325,7 +286,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
             }
             token = tokens[currentIndex];
         }
-
         return token;
     }
 
@@ -364,7 +324,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_exists(tokenId)) {
             revert ApprovalQueryForNonexistentToken();
         }
-
         return tokenApprovals[tokenId];
     }
 
@@ -388,7 +347,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (owner == address(0)) {
             revert BalanceQueryForZeroAddress();
         }
-
         uint256 total = totalSupply();
         uint256 count;
         address lastOwner;
@@ -401,7 +359,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
                 ++count;
             }
         }
-
         return count;
     }
 
@@ -444,7 +401,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_exists(tokenId)) {
             revert URIQueryForNonexistentToken();
         }
-
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length > 0
