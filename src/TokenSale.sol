@@ -5,7 +5,8 @@ import "openzeppelin-contracts/contracts/token/common/ERC2981.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import "openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol";
+import
+    "openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol";
 import "openzeppelin-contracts/contracts/utils/structs/BitMaps.sol";
 
 abstract contract TokenSale is Ownable {
@@ -25,18 +26,20 @@ abstract contract TokenSale is Ownable {
     mapping(uint256 => SaleConfig) private _saleConfig;
     mapping(uint256 => BitMaps.BitMap) private _allowlist;
 
-    modifier canMint(
-        uint256 saleId,
-        address to,
-        uint256 amount
-    ) {
+    modifier canMint(uint256 saleId, address to, uint256 amount) {
         _guardMint(to, amount);
 
         unchecked {
             SaleConfig memory saleConfig = _saleConfig[saleId];
             require(saleConfig.enabled, "Sale not enabled");
-            require(amount <= saleConfig.maxPerTransaction, "Exceeds max per transaction");
-            require(amount * saleConfig.unitPrice == msg.value, "Invalid funds provided");
+            require(
+                amount <= saleConfig.maxPerTransaction,
+                "Exceeds max per transaction"
+            );
+            require(
+                amount * saleConfig.unitPrice == msg.value,
+                "Invalid funds provided"
+            );
         }
 
         _;
@@ -47,8 +50,15 @@ abstract contract TokenSale is Ownable {
         uint256 amount,
         uint256 nonce,
         bytes calldata signature
-    ) external payable virtual canMint(saleId, _msgSender(), amount) {
-        require(_validateSignature(saleId, nonce, signature), "Invalid signature");
+    )
+        external
+        payable
+        virtual
+        canMint(saleId, _msgSender(), amount)
+    {
+        require(
+            _validateSignature(saleId, nonce, signature), "Invalid signature"
+        );
         require(_allowlist[saleId].get(nonce), "Nonce already used");
 
         _allowlist[saleId].unset(nonce);
@@ -56,13 +66,12 @@ abstract contract TokenSale is Ownable {
         _mintTokens(_msgSender(), amount);
     }
 
-    function publicMint(uint256 amount) external payable virtual canMint(PUBLIC_SALE, _msgSender(), amount) {
-        _mintTokens(_msgSender(), amount);
-    }
-
-    function devMint(uint256 amount) external virtual onlyOwner {
-        _guardMint(_msgSender(), amount);
-
+    function publicMint(uint256 amount)
+        external
+        payable
+        virtual
+        canMint(PUBLIC_SALE, _msgSender(), amount)
+    {
         _mintTokens(_msgSender(), amount);
     }
 
@@ -70,11 +79,18 @@ abstract contract TokenSale is Ownable {
         return _saleConfig[PUBLIC_SALE];
     }
 
-    function getSaleConfig(uint256 saleId) external view returns (SaleConfig memory) {
+    function getSaleConfig(uint256 saleId)
+        external
+        view
+        returns (SaleConfig memory)
+    {
         return _saleConfig[saleId];
     }
 
-    function setPublicSaleConfig(uint256 maxPerTransaction, uint256 unitPrice) external onlyOwner {
+    function setPublicSaleConfig(uint256 maxPerTransaction, uint256 unitPrice)
+        external
+        onlyOwner
+    {
         _saleConfig[PUBLIC_SALE].maxPerTransaction = uint8(maxPerTransaction);
         _saleConfig[PUBLIC_SALE].unitPrice = uint64(unitPrice);
     }
@@ -84,7 +100,10 @@ abstract contract TokenSale is Ownable {
         uint256 maxPerTransaction,
         uint256 unitPrice,
         address signerAddress
-    ) external onlyOwner {
+    )
+        external
+        onlyOwner
+    {
         _saleConfig[saleId].maxPerTransaction = uint8(maxPerTransaction);
         _saleConfig[saleId].unitPrice = uint64(unitPrice);
         _saleConfig[saleId].signerAddress = signerAddress;
@@ -113,16 +132,19 @@ abstract contract TokenSale is Ownable {
         }
     }
 
-    function getAllowlistNonceStatus(uint256 saleId, uint256 nonce) external view returns (bool) {
+    function getAllowlistNonceStatus(uint256 saleId, uint256 nonce)
+        external
+        view
+        returns (bool)
+    {
         BitMaps.BitMap storage allowlist = _allowlist[saleId];
         return allowlist.get(nonce);
     }
 
-    function setAllowlistNonceStatus(
-        uint256 saleId,
-        uint256 nonce,
-        bool value
-    ) external onlyOwner {
+    function setAllowlistNonceStatus(uint256 saleId, uint256 nonce, bool value)
+        external
+        onlyOwner
+    {
         BitMaps.BitMap storage allowlist = _allowlist[saleId];
         allowlist.setTo(nonce, value);
     }
@@ -131,11 +153,19 @@ abstract contract TokenSale is Ownable {
         uint256 saleId,
         uint256 nonce,
         bytes calldata signature
-    ) internal view virtual returns (bool) {
-        bytes32 dataHash = keccak256(abi.encodePacked(saleId, nonce, _msgSender()));
+    )
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        bytes32 dataHash =
+            keccak256(abi.encodePacked(saleId, nonce, _msgSender()));
         bytes32 message = ECDSA.toEthSignedMessageHash(dataHash);
 
-        return SignatureChecker.isValidSignatureNow(_saleConfig[saleId].signerAddress, message, signature);
+        return SignatureChecker.isValidSignatureNow(
+            _saleConfig[saleId].signerAddress, message, signature
+        );
     }
 
     function _guardMint(address to, uint256 quantity) internal view virtual {}
