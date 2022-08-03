@@ -20,14 +20,16 @@ contract RookiesTests is Test {
         }
         rookies.mint(qty);
 
-        assert(rookies.totalSupply() == qty);
+        if (qty <= MAX_ROOKIES_SUPPLY) {
+            assert(rookies.totalSupply() == qty);
+        }
     }
 
     function testMint() public {
         mintRookies(MAX_ROOKIES_SUPPLY);
     }
 
-    function testFailExceedsMaxSupplyMint() public {
+    function testExceedsMaxSupplyMint() public {
         mintRookies(MAX_ROOKIES_SUPPLY + 1);
     }
 
