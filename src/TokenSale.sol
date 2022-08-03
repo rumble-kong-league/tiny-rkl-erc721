@@ -169,20 +169,5 @@ abstract contract TokenSale is Ownable {
         );
     }
 
-    // TODO
-    // function _guardMint(address, uint256 quantity)
-    //     internal
-    //     view
-    //     virtual
-    //     override
-    // {
-    //     unchecked {
-    //         require(tx.origin == msg.sender, "Can't mint from contract");
-    //         require(
-    //             totalSupply() + quantity <= MAX_SUPPLY, "Exceeds max supply"
-    //         );
-    //     }
-    // }
-
     function _mintTokens(address to, uint256 quantity) internal virtual;
 }

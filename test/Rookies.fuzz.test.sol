@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "src/test/RookiesTest.sol";
 
 
-contract RookiesFuzzTest is Test {
+contract RookiesFuzzTests is Test {
 
     RookiesTest rookies;
 
@@ -17,13 +17,13 @@ contract RookiesFuzzTest is Test {
     function testMint(address minter, uint256 qty) public {
         vm.assume(minter != address(0));
         vm.assume(qty > 0);
-        vm.assume(qty < 600);
+        vm.assume(qty < 51);
 
         vm.startPrank(minter, minter);
 
         rookies.mint(qty);
 
-        for (uint256 tokenId; tokenId < rookies.totalSupply(); tokenId++) {
+        for (uint256 tokenId = 1; tokenId < rookies.totalSupply(); tokenId++) {
             assert(rookies.ownerOf(tokenId) == minter);
         }
         assert(rookies.balanceOf(minter) == qty);

@@ -35,6 +35,8 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         bytes12 aux;
     }
 
+    uint256 private immutable MAX_SUPPLY;
+
     // TODO: set max batch size
     uint256 private constant maxBatchSize = 5;
 
@@ -48,9 +50,9 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     mapping(uint256 => address) private tokenApprovals;
     mapping(address => mapping(address => bool)) private operatorApprovals;
 
-    uint256 public constant MAX_SUPPLY = 10000;
-
-    constructor() {}
+    constructor(uint256 maxSupply) {
+        MAX_SUPPLY = maxSupply;
+    }
 
     // function setRoyalty(address receiver, uint96 value) external onlyOwner {
     //     _setDefaultRoyalty(receiver, value);
@@ -58,8 +60,13 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     /// EFFECTS ///
 
-    // TODO: need to guard mint
     function mint(uint256 amount) external {
+        unchecked {
+            require(tx.origin == msg.sender, "Can't mint from contract");
+            require(
+                totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply"
+            );
+        }
         _mint(_msgSender(), amount);
     }
 
