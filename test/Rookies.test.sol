@@ -15,7 +15,9 @@ contract RookiesTests is Test {
         vm.startPrank(MINTER, MINTER);
 
         RookiesTest rookies = new RookiesTest();
-
+        if (qty > MAX_ROOKIES_SUPPLY) {
+            vm.expectRevert("Exceeds max supply");
+        }
         rookies.mint(qty);
 
         assert(rookies.totalSupply() == qty);
@@ -26,22 +28,7 @@ contract RookiesTests is Test {
     }
 
     function testFailExceedsMaxSupplyMint() public {
-        vm.expectRevert("Exceeds max supply");
         mintRookies(MAX_ROOKIES_SUPPLY + 1);
     }
 
-    // function testTransfer(address minter, uint256 qty, address to) public {
-    //     vm.assume(minter != address(0));
-    //     vm.assume(to != address(0));
-    //     vm.assume(minter != to);
-
-    //     testMint(minter, qty);
-
-    //     for (uint256 tokenId; tokenId < rookies.totalSupply(); tokenId++) {
-    //         rookies.transferFrom(minter, to, tokenId);
-    //         assert(rookies.ownerOf(tokenId) == to);
-    //     }
-    //     assert(rookies.balanceOf(minter) == 0);
-    //     assert(rookies.balanceOf(to) == qty);
-    // }
 }
