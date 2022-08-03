@@ -5,9 +5,7 @@ import "forge-std/Test.sol";
 
 import "src/test/RookiesTest.sol";
 
-
 contract RookiesFuzzTests is Test {
-
     RookiesTest rookies;
 
     function setUp() public {

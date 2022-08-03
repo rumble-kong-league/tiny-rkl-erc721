@@ -5,9 +5,7 @@ import "forge-std/Test.sol";
 
 import "src/test/RookiesTest.sol";
 
-
 contract RookiesTests is Test {
-
     address MINTER = 0x0000000000000000000000000000000000000001;
     address ALICE = 0x0000000000000000000000000000000000000002;
     address BOB = 0x0000000000000000000000000000000000000003;
@@ -61,5 +59,4 @@ contract RookiesTests is Test {
         assertEq(rookies.balanceOf(BOB), 1);
         assertEq(rookies.ownerOf(0), BOB);
     }
-
 }

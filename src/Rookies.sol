@@ -54,18 +54,12 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         admin = address(msg.sender);
     }
 
-    // function setRoyalty(address receiver, uint96 value) external onlyOwner {
-    //     _setDefaultRoyalty(receiver, value);
-    // }
-
     /// EFFECTS ///
 
     function mint(uint256 amount) external {
         unchecked {
             require(tx.origin == msg.sender, "Can't mint from contract");
-            require(
-                totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply"
-            );
+            require(totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply");
         }
         _safeMint(_msgSender(), amount);
     }
@@ -260,11 +254,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         return tokenId < totalSupply;
     }
 
-    function _isApprovedOrOwner(
-        address spender,
-        uint256 tokenId,
-        address owner
-    )
+    function _isApprovedOrOwner(address spender, uint256 tokenId, address owner)
         internal
         view
         virtual
