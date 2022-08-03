@@ -36,22 +36,22 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     uint256 private immutable MAX_SUPPLY;
-
-    // TODO: set max batch size
     uint256 private constant maxBatchSize = 5;
 
     mapping(uint256 => TokenData) private tokens;
-    uint256 public totalSupply;
 
-    // TODO: you can get getters by overriding. Test this.
+    uint256 public totalSupply;
     string public override name = "Rookies";
     string public override symbol = "ROOKIES";
+    string public baseURI;
+    address private admin;
 
     mapping(uint256 => address) private tokenApprovals;
     mapping(address => mapping(address => bool)) private operatorApprovals;
 
     constructor(uint256 maxSupply) {
         MAX_SUPPLY = maxSupply;
+        admin = address(msg.sender);
     }
 
     // function setRoyalty(address receiver, uint96 value) external onlyOwner {
@@ -67,7 +67,36 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
                 totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply"
             );
         }
-        _mint(_msgSender(), amount);
+        _safeMint(_msgSender(), amount);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    )
+        public
+        virtual
+        override
+    {
+        TokenData memory token = _tokenData(tokenId);
+        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
+            revert TransferCallerNotOwnerNorApproved();
+        }
+        _safeTransfer(from, to, tokenId, token, data);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId)
+        public
+        virtual
+        override
+    {
+        TokenData memory token = _tokenData(tokenId);
+        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
+            revert TransferCallerNotOwnerNorApproved();
+        }
+        _transfer(from, to, tokenId, token);
     }
 
     function approve(address to, uint256 tokenId) public virtual override {
@@ -94,43 +123,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         emit ApprovalForAll(_msgSender(), operator, approved);
     }
 
-    function transferFrom(address from, address to, uint256 tokenId)
-        public
-        virtual
-        override
-    {
-        TokenData memory token = _tokenData(tokenId);
-        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
-            revert TransferCallerNotOwnerNorApproved();
-        }
-        _transfer(from, to, tokenId, token);
-    }
-
-    function safeTransferFrom(address from, address to, uint256 tokenId)
-        public
-        virtual
-        override
-    {
-        safeTransferFrom(from, to, tokenId, "");
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    )
-        public
-        virtual
-        override
-    {
-        TokenData memory token = _tokenData(tokenId);
-        if (!_isApprovedOrOwner(_msgSender(), tokenId, token.owner)) {
-            revert TransferCallerNotOwnerNorApproved();
-        }
-        _safeTransfer(from, to, tokenId, token, data);
-    }
-
     function _safeTransfer(
         address from,
         address to,
@@ -146,10 +138,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         {
             revert TransferToNonERC721ReceiverImplementer();
         }
-    }
-
-    function _safeMint(address to, uint256 quantity) internal virtual {
-        _safeMint(to, quantity, "");
     }
 
     function _safeMint(address to, uint256 quantity, bytes memory data)
@@ -191,7 +179,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         }
     }
 
-    // TODO: does not reset ApprovalForAll
     function _transfer(
         address from,
         address to,
@@ -255,6 +242,18 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         }
     }
 
+    function _safeMint(address to, uint256 quantity) internal virtual {
+        _safeMint(to, quantity, "");
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId)
+        public
+        virtual
+        override
+    {
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
     /// INTERNAL READ ///
 
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
@@ -315,9 +314,14 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
             : current;
     }
 
-    // TODO: this needs to be settable. Need a var for it
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
+    function setBaseURI(string calldata uri) external {
+        require(msg.sender == admin);
+        baseURI = uri;
+    }
+
+    function renounceOwnership() external {
+        require(msg.sender == admin);
+        admin = address(0);
     }
 
     /// PUBLIC READ ///
@@ -404,7 +408,6 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         if (!_exists(tokenId)) {
             revert URIQueryForNonexistentToken();
         }
-        string memory baseURI = _baseURI();
         return
             bytes(baseURI).length > 0
             ? string(abi.encodePacked(baseURI, tokenId.toString()))
