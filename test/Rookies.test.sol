@@ -2,8 +2,21 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 import "src/test/RookiesTest.sol";
+
+contract BrokenGnosisVault {
+    function mintRookies(RookiesTest rookies, uint256 qty) external {
+        rookies.mint(qty);
+    }
+}
+
+contract GnosisVault is ERC721Holder {
+    function mintRookies(RookiesTest rookies, uint256 qty) external {
+        rookies.mint(qty);
+    }
+}
 
 contract RookiesTests is Test {
     address MINTER = 0x0000000000000000000000000000000000000001;
@@ -91,6 +104,44 @@ contract RookiesTests is Test {
         );
         rookies.transferFrom(BOB, MINTER, 1);
     }
+
+    function testMintFromBrokenContract() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        BrokenGnosisVault broken = new BrokenGnosisVault();
+        vm.expectRevert(
+            abi.encodeWithSignature("TransferToNonERC721ReceiverImplementer()")
+        );
+        broken.mintRookies(rookies, 1);
+    }
+
+    function testMintFromContract() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        GnosisVault gnosis = new GnosisVault();
+        gnosis.mintRookies(rookies, 1);
+        assertEq(rookies.balanceOf(address(gnosis)), 1);
+    }
+
+    function testTransferFailsToBrokenContract() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        BrokenGnosisVault broken = new BrokenGnosisVault();
+        vm.expectRevert(
+            abi.encodeWithSignature("TransferToNonERC721ReceiverImplementer()")
+        );
+        rookies.safeTransferFrom(MINTER, address(broken), 0);
+    }
+
+    function testTransferToContract() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        GnosisVault gnosis = new GnosisVault();
+        rookies.safeTransferFrom(MINTER, address(gnosis), 0);
+        assertEq(rookies.balanceOf(address(gnosis)), 1);
+    }
 }
-// TODO: test that the contract that does not implement ERC721Receiver will fail claim
-// TODO: test can mint from the contract (we will mint the unclaimed rookies into the vault)
+
+// TODO: test supports intefaces

@@ -11,8 +11,10 @@ contract RookiesClaimTests is Test {
     address BOB = 0x0000000000000000000000000000000000000003;
     address NFTAPE = 0x95E555e3f453b8B4A2029Fc6aB81010928b0f987;
 
-    // taken from: https://stackoverflow.com/questions/54480589/can-not-declare-a-bytes32-fixed-array-or-bytes32-unfixed-array-in-a-contract
-    // You need to explicitly cast the first element of the array literal to indicate the type. The Solidity compiler isn't smart enough to infer the right-hand side type for you:
+    // taken from: https://stackoverflow.com/questions/54480589/
+    // can-not-declare-a-bytes32-fixed-array-or-bytes32-unfixed-array-in-a-contract
+    // You need to explicitly cast the first element of the array literal to indicate
+    // the type. The Solidity compiler isn't smart enough to infer the right-hand side type for you:
     bytes32[] proof = [
         bytes32(0xf5d92087e437d0a287fb393e68350f6a3a663a58e62d20485746a18fc1c42e22),
         0x3627c740886c39ee1754cb98a0281e29c0dfbb651b74076480c114b52cc1e9e1,
