@@ -12,7 +12,7 @@ const leaves = snapshot.map((x) => keccak256(x.id, x.numKongsOwned));
 const tree = new MerkleTree(leaves, keccak256, { sort: true });
 
 const root = tree.getRoot().toString("hex");
-const leaf = keccak256("0x95e555e3f453b8b4a2029fc6ab81010928b0f987", 492);
+const leaf = keccak256("0x95E555e3f453b8B4A2029Fc6aB81010928b0f987", 492);
 let proof = tree.getProof(leaf);
 
 console.log("root:", root);

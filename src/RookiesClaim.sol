@@ -51,7 +51,7 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         pure
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked(eligibleQty, account));
+        return keccak256(abi.encodePacked(account, eligibleQty));
     }
 
     function _verify(bytes32 leaf, bytes32[] memory proof)
