@@ -10,3 +10,5 @@ out/
 yarn.lock
 .env
 node_modules/
+lcov.info
+report/
