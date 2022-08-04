@@ -13,6 +13,7 @@ contract RookiesFuzzTests is Test {
     }
 
     function testMint(address minter, uint256 qty) public {
+        vm.assume(minter.code.length == 0); // ensures minter is not a contract
         vm.assume(minter != address(0));
         vm.assume(qty > 0);
         vm.assume(qty < 51);
@@ -29,6 +30,7 @@ contract RookiesFuzzTests is Test {
     }
 
     function testTransfer(address minter, uint256 qty, address to) public {
+        vm.assume(minter.code.length == 0); // ensures minter is not a contract
         vm.assume(minter != address(0));
         vm.assume(to != address(0));
         vm.assume(minter != to);
