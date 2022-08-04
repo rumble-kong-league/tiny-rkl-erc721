@@ -60,3 +60,6 @@ contract RookiesTests is Test {
         assertEq(rookies.ownerOf(0), BOB);
     }
 }
+// TODO: test approve for all
+// TODO: test can mint from the contract (we will mint the unclaimed rookies into the vault)
+// TODO: test claim expired

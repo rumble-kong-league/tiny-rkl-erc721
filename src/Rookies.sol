@@ -56,12 +56,9 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     /// EFFECTS ///
 
-    function mint(uint256 amount) external {
-        unchecked {
-            require(tx.origin == msg.sender, "Can't mint from contract");
-            require(totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply");
-        }
-        _safeMint(_msgSender(), amount);
+    function mint(uint256 amount, address to) internal {
+        require(totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply");
+        _safeMint(to, amount);
     }
 
     function safeTransferFrom(
