@@ -59,7 +59,34 @@ contract RookiesTests is Test {
         assertEq(rookies.balanceOf(BOB), 1);
         assertEq(rookies.ownerOf(0), BOB);
     }
+
+    function testApproveForAll() public {
+        vm.startPrank(MINTER, MINTER);
+
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(2);
+        rookies.setApprovalForAll(ALICE, true);
+
+        assertEq(rookies.isApprovedForAll(MINTER, ALICE), true);
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        rookies.transferFrom(MINTER, BOB, 0);
+        assertEq(rookies.balanceOf(ALICE), 0);
+        assertEq(rookies.balanceOf(MINTER), 1);
+        assertEq(rookies.balanceOf(BOB), 1);
+
+        vm.stopPrank();
+        vm.startPrank(MINTER, MINTER);
+        rookies.transferFrom(MINTER, BOB, 1);
+        assertEq(rookies.balanceOf(ALICE), 0);
+        assertEq(rookies.balanceOf(MINTER), 0);
+        assertEq(rookies.balanceOf(BOB), 2);
+
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert(abi.encodeWithSignature("TransferCallerNotOwnerNorApproved()"));
+        rookies.transferFrom(BOB, MINTER, 1);
+    }
 }
-// TODO: test approve for all
 // TODO: test can mint from the contract (we will mint the unclaimed rookies into the vault)
 // TODO: test claim expired
