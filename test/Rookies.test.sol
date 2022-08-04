@@ -84,9 +84,13 @@ contract RookiesTests is Test {
 
         vm.stopPrank();
         vm.startPrank(ALICE, ALICE);
-        vm.expectRevert(abi.encodeWithSignature("TransferCallerNotOwnerNorApproved()"));
+        // * selector should work as well
+        // https://github.com/AztecProtocol/aztec-connect-bridges/blob/6388b08be07ebd4d86a2de8e6bf2ca3c2cc8ac5b/src/test/bridges/liquity/StakingBridgeUnit.t.sol#L43
+        vm.expectRevert(
+            abi.encodeWithSignature("TransferCallerNotOwnerNorApproved()")
+        );
         rookies.transferFrom(BOB, MINTER, 1);
     }
 }
+// TODO: test that the contract that does not implement ERC721Receiver will fail claim
 // TODO: test can mint from the contract (we will mint the unclaimed rookies into the vault)
-// TODO: test claim expired

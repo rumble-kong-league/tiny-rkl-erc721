@@ -6,3 +6,7 @@ out/
 !/broadcast
 /broadcast/*
 /broadcast/*/31337/
+
+yarn.lock
+.env
+node_modules/
