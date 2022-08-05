@@ -16,12 +16,19 @@ contract RookiesTest is Rookies(50) {
         address from,
         address to,
         uint256 tokenId,
-        TokenData calldata token,
+        address tokenDataOwner,
+        bytes12 tokenDataAux,
         bytes calldata data
     )
         public
     {
-        _safeTransfer(from, to, tokenId, token, data);
+        _safeTransfer(
+            from,
+            to,
+            tokenId,
+            TokenData({owner: tokenDataOwner, aux: tokenDataAux}),
+            data
+        );
     }
 
     function safeMintWrapped(address to, uint256 quantity, bytes memory data)
@@ -34,11 +41,17 @@ contract RookiesTest is Rookies(50) {
         address from,
         address to,
         uint256 tokenId,
-        TokenData calldata token
+        address tokenDataOwner,
+        bytes12 tokenDataAux
     )
         public
     {
-        _transfer(from, to, tokenId, token);
+        _transfer(
+            from,
+            to,
+            tokenId,
+            TokenData({owner: tokenDataOwner, aux: tokenDataAux})
+        );
     }
 
     function tokenDataWrapped(uint256 tokenId) public view {

@@ -271,4 +271,20 @@ contract RookiesTests is Test {
         rookies.setBaseURI("ipfs://rookies/");
         assertEq(rookies.tokenURI(0), "ipfs://rookies/0");
     }
-} // TODO: test supports intefaces
+
+    function testTransferToZeroAddressRevert() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mintWrapped(1);
+        vm.expectRevert(abi.encodeWithSignature("TransferToZeroAddress()"));
+        rookies.safeTransferFrom(MINTER, address(0), 0);
+    }
+
+    function testTransferFromSus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mintWrapped(1);
+        vm.expectRevert(abi.encodeWithSignature("TransferFromIncorrectOwner()"));
+        rookies.transferWrapped(ALICE, BOB, 0, MINTER, bytes12(0x0));
+    }
+}
