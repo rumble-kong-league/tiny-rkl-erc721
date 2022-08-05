@@ -8,13 +8,13 @@ import "src/test/RookiesTest.sol";
 
 contract BrokenGnosisVault {
     function mintRookies(RookiesTest rookies, uint256 qty) external {
-        rookies.mint(qty);
+        rookies.mintWrapped(qty);
     }
 }
 
 contract GnosisVault is ERC721Holder {
     function mintRookies(RookiesTest rookies, uint256 qty) external {
-        rookies.mint(qty);
+        rookies.mintWrapped(qty);
     }
 }
 
@@ -31,7 +31,7 @@ contract RookiesTests is Test {
         if (qty > MAX_ROOKIES_SUPPLY) {
             vm.expectRevert("Exceeds max supply");
         }
-        rookies.mint(qty);
+        rookies.mintWrapped(qty);
 
         if (qty <= MAX_ROOKIES_SUPPLY) {
             assert(rookies.totalSupply() == qty);
@@ -59,7 +59,7 @@ contract RookiesTests is Test {
         vm.startPrank(MINTER, MINTER);
 
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         assertEq(rookies.getApproved(0), address(0));
         rookies.approve(ALICE, 0);
         assertEq(rookies.getApproved(0), ALICE);
@@ -77,7 +77,7 @@ contract RookiesTests is Test {
         vm.startPrank(MINTER, MINTER);
 
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(2);
+        rookies.mintWrapped(2);
         rookies.setApprovalForAll(ALICE, true);
 
         assertEq(rookies.isApprovedForAll(MINTER, ALICE), true);
@@ -126,7 +126,7 @@ contract RookiesTests is Test {
     function testTransferFailsToBrokenContract() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         BrokenGnosisVault broken = new BrokenGnosisVault();
         vm.expectRevert(
             abi.encodeWithSignature("TransferToNonERC721ReceiverImplementer()")
@@ -137,7 +137,7 @@ contract RookiesTests is Test {
     function testTransferToContract() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         GnosisVault gnosis = new GnosisVault();
         rookies.safeTransferFrom(MINTER, address(gnosis), 0);
         assertEq(rookies.balanceOf(address(gnosis)), 1);
@@ -146,7 +146,7 @@ contract RookiesTests is Test {
     function testApproveToCallerRevert() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
 
         vm.expectRevert(abi.encodeWithSignature("ApproveToCaller()"));
         rookies.setApprovalForAll(MINTER, true);
@@ -155,7 +155,7 @@ contract RookiesTests is Test {
     function testTransferWithDataRevert() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         vm.stopPrank();
         vm.startPrank(ALICE, ALICE);
         vm.expectRevert(
@@ -167,7 +167,7 @@ contract RookiesTests is Test {
     function testApprovalToCurrentOwner() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         vm.expectRevert(abi.encodeWithSignature("ApprovalToCurrentOwner()"));
         rookies.approve(MINTER, 0);
     }
@@ -175,7 +175,7 @@ contract RookiesTests is Test {
     function testApprovalRevertSus() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         vm.stopPrank();
         vm.startPrank(ALICE, ALICE);
         vm.expectRevert(
@@ -188,14 +188,14 @@ contract RookiesTests is Test {
         vm.startPrank(address(0), address(0));
         RookiesTest rookies = new RookiesTest();
         vm.expectRevert(abi.encodeWithSignature("MintToZeroAddress()"));
-        rookies.mint(1);
+        rookies.mintWrapped(1);
     }
 
     function testCantMintZeroQty() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
         vm.expectRevert(abi.encodeWithSignature("MintZeroQuantity()"));
-        rookies.mint(0);
+        rookies.mintWrapped(0);
     }
 
     function testSetBaseURISus() public {
@@ -266,7 +266,7 @@ contract RookiesTests is Test {
     function testTokenURI() public {
         vm.startPrank(MINTER, MINTER);
         RookiesTest rookies = new RookiesTest();
-        rookies.mint(1);
+        rookies.mintWrapped(1);
         assertEq(rookies.tokenURI(0), "");
         rookies.setBaseURI("ipfs://rookies/");
         assertEq(rookies.tokenURI(0), "ipfs://rookies/0");

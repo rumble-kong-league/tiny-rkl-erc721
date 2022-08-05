@@ -20,7 +20,7 @@ contract RookiesFuzzTests is Test {
 
         vm.startPrank(minter, minter);
 
-        rookies.mint(qty);
+        rookies.mintWrapped(qty);
 
         for (uint256 tokenId = 1; tokenId < rookies.totalSupply(); tokenId++) {
             assert(rookies.ownerOf(tokenId) == minter);
