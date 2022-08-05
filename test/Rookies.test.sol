@@ -287,4 +287,12 @@ contract RookiesTests is Test {
         vm.expectRevert(abi.encodeWithSignature("TransferFromIncorrectOwner()"));
         rookies.transferWrapped(ALICE, BOB, 0, MINTER, bytes12(0x0));
     }
+
+    function testTokenDataQueryForNonExistent() public {
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(
+            abi.encodeWithSignature("TokenDataQueryForNonexistentToken()")
+        );
+        rookies.tokenDataWrapped(0);
+    }
 }

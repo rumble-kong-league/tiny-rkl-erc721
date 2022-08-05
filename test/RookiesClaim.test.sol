@@ -78,4 +78,77 @@ contract RookiesClaimTests is Test {
         vm.expectRevert("Claim has expired");
         rookies.redeem(NFTAPE, 492, proof, 1);
     }
+
+    function testClaimRevertsBeforeStart() public {
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp + 1
+        );
+        vm.startPrank(NFTAPE, NFTAPE);
+        vm.expectRevert("Claim not yet started");
+        rookies.redeem(NFTAPE, 492, proof, 1);
+    }
+
+    function testSetExpiredRookiesClaim() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp
+        );
+        rookies.setExpiredRookiesClaimer(ALICE);
+        // TODO: load ALICE from storage slot
+    }
+
+    function testSetExpiredRookiesClaimSus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp
+        );
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert(
+            "Only admin can set expiredRookiesClaimer"
+        );
+        rookies.setExpiredRookiesClaimer(ALICE);
+    }
+
+    function testAdminRedeem() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp
+        );
+        vm.warp(block.timestamp + 4 * 7 * 24 * 3600 + 1);
+        rookies.setExpiredRookiesClaimer(ALICE);
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        rookies.adminRedeem(10, BOB);
+        assertEq(rookies.balanceOf(BOB), 10);   
+    }
+
+    function testNonAdminRedeemRevert() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp
+        );
+        vm.warp(block.timestamp + 4 * 7 * 24 * 3600 + 1);
+        rookies.setExpiredRookiesClaimer(ALICE);
+        vm.expectRevert("Only expiredRookiesClaimer can redeem");
+        rookies.adminRedeem(10, BOB);
+    }
+
+    function testCantRedeemBeforeEndClaim() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesClaim rookies = new RookiesClaim(
+            merkleroot,
+            block.timestamp
+        );
+        rookies.setExpiredRookiesClaimer(ALICE);
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert("Claim has not expired yet");
+        rookies.adminRedeem(10, BOB);     
+    }
 }
