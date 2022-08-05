@@ -142,6 +142,133 @@ contract RookiesTests is Test {
         rookies.safeTransferFrom(MINTER, address(gnosis), 0);
         assertEq(rookies.balanceOf(address(gnosis)), 1);
     }
-}
 
-// TODO: test supports intefaces
+    function testApproveToCallerRevert() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+
+        vm.expectRevert(abi.encodeWithSignature("ApproveToCaller()"));
+        rookies.setApprovalForAll(MINTER, true);
+    }
+
+    function testTransferWithDataRevert() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert(
+            abi.encodeWithSignature("TransferCallerNotOwnerNorApproved()")
+        );
+        rookies.safeTransferFrom(ALICE, BOB, 0, "");
+    }
+
+    function testApprovalToCurrentOwner() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        vm.expectRevert(abi.encodeWithSignature("ApprovalToCurrentOwner()"));
+        rookies.approve(MINTER, 0);
+    }
+
+    function testApprovalRevertSus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert(
+            abi.encodeWithSignature("ApprovalCallerNotOwnerNorApproved()")
+        );
+        rookies.approve(BOB, 0);
+    }
+
+    function testCantMintToZeroAddy() public {
+        vm.startPrank(address(0), address(0));
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(abi.encodeWithSignature("MintToZeroAddress()"));
+        rookies.mint(1);
+    }
+
+    function testCantMintZeroQty() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(abi.encodeWithSignature("MintZeroQuantity()"));
+        rookies.mint(0);
+    }
+
+    function testSetBaseURISus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert();
+        rookies.setBaseURI("");
+    }
+
+    function testSetBaseURI() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.setBaseURI("ipfs://rookies/");
+        assertEq(rookies.baseURI(), "ipfs://rookies/");
+    }
+
+    function testRenounceOwnershipSus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        vm.expectRevert();
+        rookies.renounceOwnership();
+    }
+
+    function testRenounceOwnership() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.renounceOwnership();
+        vm.expectRevert();
+        rookies.renounceOwnership();
+    }
+
+    function testGetApprovedForSus() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(
+            abi.encodeWithSignature("ApprovalQueryForNonexistentToken()")
+        );
+        rookies.getApproved(0);
+    }
+
+    function testZeroAddyBalanceSus() public {
+        vm.startPrank(address(0), address(0));
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(abi.encodeWithSignature("BalanceQueryForZeroAddress()"));
+        rookies.balanceOf(address(0));
+    }
+
+    function testOwnerForNonExistent() public {
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(
+            abi.encodeWithSignature("OwnerQueryForNonexistentToken()")
+        );
+        rookies.ownerOf(0);
+    }
+
+    function testTokenURIForNonExistent() public {
+        RookiesTest rookies = new RookiesTest();
+        vm.expectRevert(
+            abi.encodeWithSignature("URIQueryForNonexistentToken()")
+        );
+        rookies.tokenURI(0);
+    }
+
+    function testTokenURI() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        rookies.mint(1);
+        assertEq(rookies.tokenURI(0), "");
+        rookies.setBaseURI("ipfs://rookies/");
+        assertEq(rookies.tokenURI(0), "ipfs://rookies/0");
+    }
+} // TODO: test supports intefaces
