@@ -46,6 +46,18 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         return isOwner && !isClaimed;
     }
 
+    function canClaimAll(uint256[] calldata kongTokenIds)
+        external
+        view
+        returns (bool[] memory)
+    {
+        bool[] memory _canClaim = new bool[](kongTokenIds.length);
+        for (uint256 i; i < kongTokenIds.length; i++) {
+            _canClaim[i] = canClaim(kongTokenIds[i]);
+        }
+        return _canClaim;
+    }
+
     /// ADMIN ///
 
     function setExpiredRookiesClaimer(address _expiredRookiesClaimer)

@@ -20,3 +20,9 @@ There is also an argument for different levels of verbosity:
 `forge test -v`
 
 All the way up to `-vvvvv`
+
+## Goerli Test Deploy
+
+Rumble Kong League OG stub collection deployed at: `0xfC01aE2764Ca9CD8ABbf10aBf430Ca4661AEAcd9`. You can arbitrarily mint kongs with the following function `mint(address to, uint256 qty)`.
+
+Test Rookies Claim contract was deployed to: `0xaBb95Abfb3D79DAF27558E5Aff8bf714922bA8dB`.
