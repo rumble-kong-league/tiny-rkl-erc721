@@ -29,12 +29,7 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         admin = msg.sender;
     }
 
-    function redeem(
-        uint256[] calldata kongTokenIds
-    )
-        external
-        nonReentrant
-    {
+    function redeem(uint256[] calldata kongTokenIds) external nonReentrant {
         require(block.timestamp >= startClaimTimestamp, "Claim not yet started");
         require(block.timestamp <= endClaimTimestamp, "Claim has expired");
         for (uint256 i; i < kongTokenIds.length; i++) {
@@ -60,7 +55,9 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         expiredRookiesClaimer = _expiredRookiesClaimer;
     }
 
-    function adminRedeem(uint256[] calldata kongTokenIds, address to) external {
+    function adminRedeem(uint256[] calldata kongTokenIds, address to)
+        external
+    {
         require(
             msg.sender == expiredRookiesClaimer,
             "Only expiredRookiesClaimer can redeem"
