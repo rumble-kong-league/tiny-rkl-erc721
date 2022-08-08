@@ -1,65 +1,54 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
+import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import "openzeppelin-contracts/contracts/utils/structs/BitMaps.sol";
 import "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
 import "src/Rookies.sol";
 
+// TODO: test this
 contract RookiesClaim is Rookies(10000), ReentrancyGuard {
-    bytes32 public immutable root;
+    using BitMaps for BitMaps.BitMap;
 
     uint256 public immutable startClaimTimestamp;
     uint256 public immutable endClaimTimestamp;
     uint256 public constant FOUR_WEEKS = 4 * 7 * 24 * 3600;
+
+    BitMaps.BitMap private claimable;
     address private immutable admin;
     address private expiredRookiesClaimer;
+    IERC721 private kongs;
 
-    mapping(address => uint256) private claimedRookies;
+    event Claimed(uint256 indexed kongTokenId);
 
-    constructor(bytes32 merkleroot, uint256 startClaimTmstp) {
-        root = merkleroot;
+    constructor(uint256 startClaimTmstp, address kongCollection) {
         startClaimTimestamp = startClaimTmstp;
         endClaimTimestamp = startClaimTmstp + FOUR_WEEKS;
+        kongs = IERC721(kongCollection);
         admin = msg.sender;
     }
 
     function redeem(
-        address account,
-        uint256 eligibleQty,
-        bytes32[] calldata proof,
-        uint256 mintQty
+        uint256[] calldata kongTokenIds
     )
         external
         nonReentrant
     {
         require(block.timestamp >= startClaimTimestamp, "Claim not yet started");
         require(block.timestamp <= endClaimTimestamp, "Claim has expired");
-        require(
-            _verify(_leaf(account, eligibleQty), proof), "Invalid merkle proof"
-        );
-
-        uint256 claimedSoFar = claimedRookies[account];
-        require(claimedSoFar + mintQty <= eligibleQty, "Exceeds eligible qty");
-        claimedRookies[account] += mintQty;
-
-        mint(mintQty, account);
+        for (uint256 i; i < kongTokenIds.length; i++) {
+            require(canClaim(kongTokenIds[i]), "Cannot claim");
+            claimable.set(kongTokenIds[i]);
+            emit Claimed(kongTokenIds[i]);
+        }
+        mint(kongTokenIds.length, _msgSender());
     }
 
-    function _leaf(address account, uint256 eligibleQty)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(account, eligibleQty));
-    }
-
-    function _verify(bytes32 leaf, bytes32[] memory proof)
-        internal
-        view
-        returns (bool)
-    {
-        return MerkleProof.verify(proof, root, leaf);
+    function canClaim(uint256 kongTokenId) public view returns (bool) {
+        bool isOwner = kongs.ownerOf(kongTokenId) == _msgSender();
+        bool isClaimed = claimable.get(kongTokenId);
+        return isOwner && !isClaimed;
     }
 
     /// ADMIN ///
@@ -71,7 +60,7 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         expiredRookiesClaimer = _expiredRookiesClaimer;
     }
 
-    function adminRedeem(uint256 qty, address to) external {
+    function adminRedeem(uint256[] calldata kongTokenIds, address to) external {
         require(
             msg.sender == expiredRookiesClaimer,
             "Only expiredRookiesClaimer can redeem"
@@ -79,7 +68,13 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         require(
             block.timestamp > endClaimTimestamp, "Claim has not expired yet"
         );
-
-        mint(qty, to);
+        bool isClaimed;
+        for (uint256 i; i < kongTokenIds.length; i++) {
+            isClaimed = claimable.get(kongTokenIds[i]);
+            require(!isClaimed, "Cannot claim");
+            claimable.set(kongTokenIds[i]);
+            emit Claimed(kongTokenIds[i]);
+        }
+        mint(kongTokenIds.length, to);
     }
 }
