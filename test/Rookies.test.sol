@@ -22,6 +22,9 @@ contract RookiesTests is Test {
     address MINTER = 0x0000000000000000000000000000000000000001;
     address ALICE = 0x0000000000000000000000000000000000000002;
     address BOB = 0x0000000000000000000000000000000000000003;
+    address CHARLIE = 0x0000000000000000000000000000000000000004;
+    address DAVE = 0x0000000000000000000000000000000000000005;
+    address EVE = 0x0000000000000000000000000000000000000006;
     uint256 MAX_ROOKIES_SUPPLY = 50;
 
     function mintRookies(uint256 qty) public {
@@ -40,6 +43,40 @@ contract RookiesTests is Test {
 
     function testMint() public {
         mintRookies(MAX_ROOKIES_SUPPLY);
+    }
+
+    function testMints() public {
+        vm.startPrank(MINTER, MINTER);
+        RookiesTest rookies = new RookiesTest();
+        vm.stopPrank();
+        vm.startPrank(ALICE, ALICE);
+        rookies.mintWrapped(1);
+        assert(rookies.totalSupply() == 1);
+        assert(rookies.ownerOf(0) == ALICE);
+        vm.stopPrank();
+        vm.startPrank(BOB, BOB);
+        rookies.mintWrapped(1);
+        assert(rookies.totalSupply() == 2);
+        assert(rookies.ownerOf(1) == BOB);
+        vm.stopPrank();
+        vm.startPrank(CHARLIE, CHARLIE);
+        rookies.mintWrapped(1);
+        assert(rookies.totalSupply() == 3);
+        assert(rookies.ownerOf(2) == CHARLIE);
+        vm.stopPrank();
+        vm.startPrank(DAVE, DAVE);
+        rookies.mintWrapped(1);
+        assert(rookies.totalSupply() == 4);
+        assert(rookies.ownerOf(3) == DAVE);
+        vm.stopPrank();
+        vm.startPrank(EVE, EVE);
+        rookies.mintWrapped(1);
+        assert(rookies.totalSupply() == 5);
+        assert(rookies.ownerOf(4) == EVE);
+        assert(rookies.ownerOf(0) == ALICE);
+        assert(rookies.ownerOf(1) == BOB);
+        assert(rookies.ownerOf(2) == CHARLIE);
+        assert(rookies.ownerOf(3) == DAVE);
     }
 
     function testExceedsMaxSupplyMint() public {
