@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.15;
 
 import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import "openzeppelin-contracts/contracts/utils/structs/BitMaps.sol";
@@ -7,13 +7,12 @@ import "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
 import "src/Rookies.sol";
 
-// TODO: test this
 contract RookiesClaim is Rookies(10000), ReentrancyGuard {
     using BitMaps for BitMaps.BitMap;
 
     uint256 public immutable startClaimTimestamp;
     uint256 public immutable endClaimTimestamp;
-    uint256 public constant FOUR_WEEKS = 4 * 7 * 24 * 3600;
+    uint256 public constant FOUR_WEEKS = 4 * 7 * 24 * 60 * 60;
 
     BitMaps.BitMap private claimable;
     address private immutable admin;
