@@ -12,3 +12,4 @@ yarn.lock
 node_modules/
 lcov.info
 report/
+.vscode/

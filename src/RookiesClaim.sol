@@ -45,6 +45,9 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
         return isOwner && !isClaimed;
     }
 
+    /// Assumes the owner is valid
+    /// Useful for checking whether a connected account can claim rookies
+    /// on the frontend.
     function canClaimAll(uint256[] calldata kongTokenIds)
         external
         view
@@ -52,7 +55,7 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
     {
         bool[] memory _canClaim = new bool[](kongTokenIds.length);
         for (uint256 i; i < kongTokenIds.length; i++) {
-            _canClaim[i] = canClaim(kongTokenIds[i]);
+            _canClaim[i] = claimable.get(kongTokenIds[i]);
         }
         return _canClaim;
     }
