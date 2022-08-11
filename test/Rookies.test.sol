@@ -37,7 +37,7 @@ contract RookiesTests is Test {
         rookies.mintWrapped(qty);
 
         if (qty <= MAX_ROOKIES_SUPPLY) {
-            assert(rookies.totalSupply() == qty);
+            assert(rookies.currentSupply() == qty);
         }
     }
 
@@ -51,27 +51,27 @@ contract RookiesTests is Test {
         vm.stopPrank();
         vm.startPrank(ALICE, ALICE);
         rookies.mintWrapped(1);
-        assert(rookies.totalSupply() == 1);
+        assert(rookies.currentSupply() == 1);
         assert(rookies.ownerOf(0) == ALICE);
         vm.stopPrank();
         vm.startPrank(BOB, BOB);
         rookies.mintWrapped(1);
-        assert(rookies.totalSupply() == 2);
+        assert(rookies.currentSupply() == 2);
         assert(rookies.ownerOf(1) == BOB);
         vm.stopPrank();
         vm.startPrank(CHARLIE, CHARLIE);
         rookies.mintWrapped(1);
-        assert(rookies.totalSupply() == 3);
+        assert(rookies.currentSupply() == 3);
         assert(rookies.ownerOf(2) == CHARLIE);
         vm.stopPrank();
         vm.startPrank(DAVE, DAVE);
         rookies.mintWrapped(1);
-        assert(rookies.totalSupply() == 4);
+        assert(rookies.currentSupply() == 4);
         assert(rookies.ownerOf(3) == DAVE);
         vm.stopPrank();
         vm.startPrank(EVE, EVE);
         rookies.mintWrapped(1);
-        assert(rookies.totalSupply() == 5);
+        assert(rookies.currentSupply() == 5);
         assert(rookies.ownerOf(4) == EVE);
         assert(rookies.ownerOf(0) == ALICE);
         assert(rookies.ownerOf(1) == BOB);
@@ -85,7 +85,7 @@ contract RookiesTests is Test {
 
     function testStateVars() public {
         RookiesTest rookies = new RookiesTest();
-        assertEq(rookies.name(), "Rookies");
+        assertEq(rookies.name(), "RKL Rookies");
         assertEq(rookies.symbol(), "ROOKIES");
     }
 

@@ -22,11 +22,11 @@ contract RookiesFuzzTests is Test {
 
         rookies.mintWrapped(qty);
 
-        for (uint256 tokenId = 1; tokenId < rookies.totalSupply(); tokenId++) {
+        for (uint256 tokenId = 1; tokenId < rookies.currentSupply(); tokenId++) {
             assert(rookies.ownerOf(tokenId) == minter);
         }
         assert(rookies.balanceOf(minter) == qty);
-        assert(rookies.exists(rookies.totalSupply()) == false);
+        assert(rookies.exists(rookies.currentSupply()) == false);
     }
 
     function testTransfer(address minter, uint256 qty, address to) public {
@@ -37,7 +37,7 @@ contract RookiesFuzzTests is Test {
 
         testMint(minter, qty);
 
-        for (uint256 tokenId; tokenId < rookies.totalSupply(); tokenId++) {
+        for (uint256 tokenId; tokenId < rookies.currentSupply(); tokenId++) {
             rookies.transferFrom(minter, to, tokenId);
             assert(rookies.ownerOf(tokenId) == to);
         }
