@@ -62,6 +62,15 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
 
     /// ADMIN ///
 
+    // to trigger OS to show the collection
+    function spawnOneRookie() external {
+        require(msg.sender == admin, "Only admin can mint");
+        require(claimable.get(0) == false, "Cannot mint again");
+        mint(1, msg.sender);
+        claimable.set(0);
+        emit Claimed(0);
+    }
+
     function setExpiredRookiesClaimer(address _expiredRookiesClaimer)
         external
     {
