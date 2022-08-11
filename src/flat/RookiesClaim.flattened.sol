@@ -724,8 +724,8 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     mapping(uint256 => TokenData) private tokens;
 
-    uint256 public totalSupply;
-    string public override name = "Rookies";
+    uint256 public currentSupply;
+    string public override name = "RKL Rookies";
     string public override symbol = "ROOKIES";
     string public baseURI;
     address private admin;
@@ -741,7 +741,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     /// EFFECTS ///
 
     function mint(uint256 amount, address to) internal {
-        require(totalSupply + amount <= MAX_SUPPLY, "Exceeds max supply");
+        require(currentSupply + amount <= MAX_SUPPLY, "Exceeds max supply");
         _safeMint(to, amount);
     }
 
@@ -824,7 +824,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
             unchecked {
                 for (uint256 i; i < quantity; ++i) {
                     if (
-                        !_checkOnERC721Received(address(0), to, totalSupply + i, data)
+                        !_checkOnERC721Received(address(0), to, currentSupply + i, data)
                     ) {
                         revert TransferToNonERC721ReceiverImplementer();
                     }
@@ -843,14 +843,14 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         unchecked {
             for (uint256 i; i < quantity; ++i) {
                 if (i % maxBatchSize == 0) {
-                    TokenData storage token = tokens[totalSupply + i];
+                    TokenData storage token = tokens[currentSupply + i];
                     token.owner = to;
                     token.aux =
-                        _calculateAux(address(0), to, totalSupply + i, 0);
+                        _calculateAux(address(0), to, currentSupply + i, 0);
                 }
-                emit Transfer(address(0), to, totalSupply + i);
+                emit Transfer(address(0), to, currentSupply + i);
             }
-            totalSupply += quantity;
+            currentSupply += quantity;
         }
     }
 
@@ -932,7 +932,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
     /// INTERNAL READ ///
 
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return tokenId < totalSupply;
+        return tokenId < currentSupply;
     }
 
     function _isApprovedOrOwner(address spender, uint256 tokenId, address owner)
@@ -997,6 +997,10 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
 
     /// PUBLIC READ ///
 
+    function totalSupply() public view returns (uint256) {
+        return MAX_SUPPLY;
+    }
+
     function getApproved(uint256 tokenId)
         public
         view
@@ -1032,7 +1036,7 @@ contract Rookies is Context, ERC165, IERC721, IERC721Metadata {
         }
         uint256 count;
         address lastOwner;
-        for (uint256 i; i < totalSupply; ++i) {
+        for (uint256 i; i < currentSupply; ++i) {
             address tokenOwner = tokens[i].owner;
             if (tokenOwner != address(0)) {
                 lastOwner = tokenOwner;
@@ -1140,6 +1144,15 @@ contract RookiesClaim is Rookies(10000), ReentrancyGuard {
     }
 
     /// ADMIN ///
+
+    // to trigger OS to show the collection
+    function spawnOneRookie() external {
+        require(msg.sender == admin, "Only admin can mint");
+        require(claimable.get(0) == false, "Cannot mint again");
+        mint(1, msg.sender);
+        claimable.set(0);
+        emit Claimed(0);
+    }
 
     function setExpiredRookiesClaimer(address _expiredRookiesClaimer)
         external
